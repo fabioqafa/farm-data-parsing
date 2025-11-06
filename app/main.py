@@ -6,8 +6,13 @@ import pandas as pd  # add this import
 from app.db import Base, engine, get_db
 from app import models, schemas, crud
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 
 app = FastAPI(title="Farms API (SQLite)")
+
+def round4(v):
+    return None if v is None else round(float(v), 4)
+
 
 def to_aware_utc(v) -> datetime:
     """
@@ -48,50 +53,69 @@ async def ingest_csv(file: UploadFile = File(...), db: Session = Depends(get_db)
     content = (await file.read()).decode("utf-8")
     reader = csv.DictReader(io.StringIO(content))
     count = 0
+    flags = []
+    ingestion_ts = datetime.now(timezone.utc)
+
     for row in reader:
-        # optional geometry from CSV (expects a JSON string)
-        geom = None
-        gval = row.get("geometry")
-        if gval:
-            try:
-                geom = json.loads(gval)
-            except Exception:
-                geom = None  # ignore bad geometry strings
+        lat = float(row["latitude"]) if row.get("latitude") else None
+        lon = float(row["longitude"]) if row.get("longitude") else None
+        geom = json.loads(row["geometry"]) if row.get("geometry") else None
 
         payload = schemas.FarmBase(
             farm_id=str(row["farm_id"]),
             farm_name=row.get("farm_name") or None,
             acreage=float(row["acreage"]) if row.get("acreage") else None,
-            latitude=float(row["latitude"]) if row.get("latitude") else None,
-            longitude=float(row["longitude"]) if row.get("longitude") else None,
-            geometry=geom,                 # <- picked up from CSV if present
+            latitude=round4(lat),
+            longitude=round4(lon),
+            geometry=geom,
             source="csv",
             last_updated=to_aware_utc(row.get("last_updated")),
         )
-        crud.upsert_farm(db, payload)
+        _, gflag, reason = crud.upsert_farm(db, payload, ingestion_ts=ingestion_ts)
+        if gflag:
+            flags.append({"farm_id": payload.farm_id, "reason": reason})
         count += 1
-    return {"ingested": count}
 
-# GeoJSON ingest (body upload)
+    return {"ingested": count, "geometry_flags": flags}
+
 @app.post("/ingest/geojson")
 async def ingest_geojson(geojson: dict, db: Session = Depends(get_db)):
-    features = geojson.get("features", [])
+    gtype = geojson.get("type")
+    if gtype == "FeatureCollection":
+        features = geojson.get("features", []) or []
+    elif gtype == "Feature":
+        features = [geojson]
+    else:
+        raise HTTPException(status_code=422, detail="Body must be GeoJSON Feature or FeatureCollection")
+
     count = 0
+    flags = []
+    ingestion_ts = datetime.now(timezone.utc)
+
     for feat in features:
-        props = feat.get("properties", {})
+        props = feat.get("properties") or {}
         geom = feat.get("geometry")
+
         lat = lon = None
-        if geom and geom.get("type") == "Point":
-            lon, lat = geom.get("coordinates", [None, None])
+        if geom:
+            rep = crud.representative_point_from_geometry(geom)  # (lat, lon)
+            if rep:
+                lat, lon = rep
+                lat, lon = round4(lat), round4(lon)  # ✅ clamp to 4 dp
+
         payload = schemas.FarmBase(
-            farm_id=props["farm_id"],
-            farm_name=props.get("farm_name"),
-            acreage=float(props["acreage"]) if props.get("acreage") is not None else None,
-            latitude=lat, longitude=lon,
-            geometry=geom,
+            farm_id=str(props["farm_id"]),
+            farm_name=props.get("farm_name") or None,
+            acreage=float(props["acreage"]) if props.get("acreage") not in (None, "") else None,
+            latitude=lat,
+            longitude=lon,
+            geometry=geom or None,
             source="geojson",
-            last_updated=datetime.now(timezone.utc),
+            last_updated=to_aware_utc(props.get("last_updated")),
         )
-        crud.upsert_farm(db, payload)
+        _, gflag, reason = crud.upsert_farm(db, payload, ingestion_ts=ingestion_ts)
+        if gflag:
+            flags.append({"farm_id": payload.farm_id, "reason": reason})
         count += 1
-    return {"ingested": count}
+
+    return {"ingested": count, "geometry_flags": flags}

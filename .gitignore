@@ -1,0 +1,33 @@
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pytest_cache/
+.pytest_cache/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Local DBs / data
+*.db
+*.sqlite
+*.sqlite3
+farms.db
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Tooling
+*.log
+.coverage
+htmlcov/
+.mypy_cache/
+.pyright/
+.pyre/
+
+# VS Code (optional; keep if you share workspace settings)
+.vscode/
