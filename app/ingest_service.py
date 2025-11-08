@@ -12,11 +12,11 @@ from app.utils import (
 )
 
 Clock = Callable[[], datetime]
-Upsert = Callable[..., tuple]  # (Farm, flagged: bool, reason: str|None)
+Upsert = Callable[..., tuple]
 
 class FarmIngestService:
     def __init__(self, *, clock: Clock | None = None, upsert: Upsert | None = None):
-        # DI: allow injecting clock & upsert for testing
+        # DI
         self._clock = clock or (lambda: datetime.now(timezone.utc))
         self._upsert = upsert or crud.upsert_farm
 
