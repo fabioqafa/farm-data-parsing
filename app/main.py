@@ -4,10 +4,14 @@ from app.db import Base, engine, get_db
 from app import models, schemas, crud
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
+from app.ingest_service import FarmIngestService
+from app.ingest_sources import CsvSource, GeoJSONSource
 from app.utils import process_csv_content, process_geojson_payload
 
 
 app = FastAPI(title="Farms API (SQLite)")
+
+svc = FarmIngestService()
 
 # Create tables at startup
 @app.on_event("startup")
@@ -39,11 +43,10 @@ def get_farm(farm_id: str, db: Session = Depends(get_db)):
 async def ingest_csv(file: UploadFile = File(...), db: Session = Depends(get_db)):
     try:
         content = (await file.read()).decode("utf-8")
-        return process_csv_content(content, db)
+        return svc.ingest(CsvSource(content), db)
     except UnicodeDecodeError as e:
         raise HTTPException(status_code=400, detail=f"CSV must be UTF-8 encoded: {e}")
     except ValueError as e:
-        # e.g., bad geometry JSON or missing required columns
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error while ingesting CSV: {e}")
@@ -51,6 +54,6 @@ async def ingest_csv(file: UploadFile = File(...), db: Session = Depends(get_db)
 @app.post("/ingest/geojson")
 async def ingest_geojson(geojson: dict, db: Session = Depends(get_db)):
     try:
-        return process_geojson_payload(geojson, db)
+        return svc.ingest(GeoJSONSource(geojson), db)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from sqlalchemy.orm import Session
 from app import models
-from app.utils import to_aware_utc, representative_point_from_geometry, farm_rep_point, haversine_km
+from app.utils import to_aware_utc, representative_point_from_geometry, haversine_km
 
 def upsert_farm(
     db,
@@ -99,7 +99,7 @@ def farms_within_radius(db: Session, lat: float, lon: float, radius_km: float, u
     farms = db.query(models.Farm).all()
     results: list[tuple[models.Farm, float]] = []
     for f in farms:
-        rep = farm_rep_point(f, use=use)
+        rep = representative_point_from_geometry(f.geometry)
         if not rep:
             continue
         f_lat, f_lon = rep  # (lat, lon)

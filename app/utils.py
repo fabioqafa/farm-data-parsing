@@ -92,24 +92,6 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
     return R * (2 * math.atan2(math.sqrt(a), math.sqrt(1 - a)))
 
-
-def farm_rep_point(f: models.Farm, use: str = "auto") -> Optional[tuple[float, float]]:
-    """Choose a farm's (lat, lon) using 'latlon', 'geometry', or 'auto'."""
-    use = (use or "auto").lower()
-
-    if use == "latlon":
-        if is_valid_number(getattr(f, "latitude", None)) and is_valid_number(getattr(f, "longitude", None)):
-            return float(f.latitude), float(f.longitude)
-        return None
-
-    if use == "geometry":
-        return representative_point_from_geometry(getattr(f, "geometry", None))
-
-    if is_valid_number(getattr(f, "latitude", None)) and is_valid_number(getattr(f, "longitude", None)):
-        return float(f.latitude), float(f.longitude)
-    return representative_point_from_geometry(getattr(f, "geometry", None))
-
-
 def process_csv_content(content: str, db: Session) -> dict:
     """Parse CSV text and upsert farms; derive lat/lon from geometry."""
     reader = csv.DictReader(io.StringIO(content))
