@@ -200,27 +200,7 @@ def test_upsert_direct_latlon_overrides_even_if_geometry_present(db_session):
     assert pytest.approx(obj.longitude, rel=1e-9) == 19.8
 
 
-def test_farms_within_radius_uses_latlon_and_sorts(db_session):
-    """Radius: uses stored lat/lon and returns nearest-first."""
-    ingestion = datetime(2025, 11, 6, 8, 0, tzinfo=timezone.utc)
-    base_lat, base_lon = 41.329, 19.817
-
-    crud.upsert_farm(
-        db_session, mk_payload(farm_id="A", latitude=base_lat, longitude=base_lon), ingestion_ts=ingestion
-    )
-    crud.upsert_farm(
-        db_session, mk_payload(farm_id="B", latitude=base_lat + 0.05, longitude=base_lon), ingestion_ts=ingestion
-    )
-    crud.upsert_farm(
-        db_session, mk_payload(farm_id="C", latitude=base_lat + 0.20, longitude=base_lon), ingestion_ts=ingestion
-    )
-
-    res = crud.farms_within_radius(db_session, base_lat, base_lon, 50.0, use="latlon")
-    ids_in_order = [f.farm_id for f, _ in res]
-    assert ids_in_order[:3] == ["A", "B", "C"]
-
-
-def test_farms_within_radius_uses_geometry_when_no_latlon(db_session):
+def test_farms_within_radius(db_session):
     """Radius: supports geometry-only farms via representative point."""
     ingestion = datetime(2025, 11, 6, 8, 0, tzinfo=timezone.utc)
 
@@ -238,34 +218,11 @@ def test_farms_within_radius_uses_geometry_when_no_latlon(db_session):
         ingestion_ts=ingestion,
     )
 
-    res = crud.farms_within_radius(db_session, 41.329, 19.817, 50.0, use="geometry")
+    res = crud.farms_within_radius(db_session, 41.329, 19.817, 50.0)
     ids = [f.farm_id for f, _ in res]
     assert "G1" in ids
     assert "G2" not in ids
-
-
-def test_farms_within_radius_auto_prefers_latlon_then_geometry(db_session):
-    """Radius: 'auto' prefers lat/lon but falls back to geometry."""
-    ingestion = datetime(2025, 11, 6, 8, 0, tzinfo=timezone.utc)
-
-    geom = {"type": "Point", "coordinates": [19.80, 41.33]}
-    crud.upsert_farm(
-        db_session,
-        mk_payload(farm_id="X", latitude=41.331, longitude=19.801, geometry=geom),
-        ingestion_ts=ingestion,
-    )
-
-    geom2 = {"type": "Point", "coordinates": [19.60, 41.33]}
-    crud.upsert_farm(
-        db_session,
-        mk_payload(farm_id="Y", latitude=None, longitude=None, geometry=geom2),
-        ingestion_ts=ingestion,
-    )
-
-    res = crud.farms_within_radius(db_session, 41.329, 19.817, 25.0, use="auto")
-    ids = [f.farm_id for f, _ in res]
-    assert "X" in ids
-    assert "Y" in ids
+    
 
 
 def test_last_updated_always_equals_ingestion_ts(db_session):

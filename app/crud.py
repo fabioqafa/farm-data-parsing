@@ -94,7 +94,7 @@ def upsert_farm(
     return obj, geometry_flagged, flag_reason
 
 
-def farms_within_radius(db: Session, lat: float, lon: float, radius_km: float, use="auto"):
+def farms_within_radius(db: Session, lat: float, lon: float, radius_km: float):
     # Pull all farms and decide usable coordinates per-row based on 'use'
     farms = db.query(models.Farm).all()
     results: list[tuple[models.Farm, float]] = []
