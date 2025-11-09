@@ -454,7 +454,7 @@ How this project meets the requirements:
 - Data model: SQLite via SQLAlchemy with fields per spec.
 - Merge logic: respects `last_updated`, non-empty updates, and geometry shift threshold of 5 km.
 - Geospatial functions: Haversine distance for both updates and radius search; representative point for geometries.
-- Extensibility: clear layering (`app/utils.py`, `app/crud.py`, `app/models.py`, `app/schemas.py`, `app/main.py`).
+- Extensibility: clean layering (app/utils.py, app/crud.py, app/models.py, app/schemas.py, app/main.py) and a SOLID-aligned ingestion pipeline: source adapters (app/ingest_sources.py) are open for extension (CSV, GeoJSON, future formats), while business rules live in a separate service (app/ingest_service.py) for easy testing and reuse.
 
 
 ## Testing
