@@ -147,6 +147,97 @@ This code was tested with:
 Provided payloads:
 
 ```json
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "farm_id": "F200",
+        "farm_name": "Initial Farm",
+        "acreage": 100.0,
+        "last_updated": "2025-01-01T00:00:00Z"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [19.8170, 41.3290]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "farm_id": "F200",
+        "farm_name": "Renamed Farm",
+        "acreage": 120.0,
+        "last_updated": "2030-01-01T00:00:00Z"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [19.8200, 41.3300]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "farm_id": "F200",
+        "farm_name": "Renamed Farm Big Move",
+        "acreage": 130.0,
+        "last_updated": "2031-01-01T00:00:00Z"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [19.0000, 41.3290]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "farm_id": "F200",
+        "farm_name": "",
+        "acreage": "",
+        "last_updated": "2000-01-01T00:00:00Z"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [19.8210, 41.3305]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "farm_id": "F201",
+        "farm_name": "Second Farm",
+        "acreage": 75.0,
+        "last_updated": "2025-02-01T12:00:00Z"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [19.8010, 41.3310]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "farm_id": "F201",
+        "farm_name": "Second Farm Updated",
+        "acreage": 80.0,
+        "last_updated": "2030-06-01T00:00:00Z"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [19.80, 41.33],
+            [19.82, 41.33],
+            [19.82, 41.35],
+            [19.80, 41.35],
+            [19.80, 41.33]
+          ]
+        ]
+      }
+    }
+  ]
+}
 
 ```
 
