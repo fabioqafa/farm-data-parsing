@@ -147,141 +147,195 @@ This code was tested with:
 Provided payloads:
 
 ```json
-{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "farm_id": "F200",
-        "farm_name": "Initial Farm",
-        "acreage": 100.0,
-        "last_updated": "2025-01-01T00:00:00Z"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [19.8170, 41.3290]
-      }
-    }
-  ]
-}
-{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "farm_id": "F200",
-        "farm_name": "Renamed Farm",
-        "acreage": 120.0,
-        "last_updated": "2030-01-01T00:00:00Z"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [19.8200, 41.3300]
-      }
-    }
-  ]
-}
-{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "farm_id": "F200",
-        "farm_name": "Renamed Farm Big Move",
-        "acreage": 130.0,
-        "last_updated": "2031-01-01T00:00:00Z"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [19.0000, 41.3290]
-      }
-    }
-  ]
-}
-{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "farm_id": "F200",
-        "farm_name": "",
-        "acreage": "",
-        "last_updated": "2000-01-01T00:00:00Z"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [19.8210, 41.3305]
-      }
-    }
-  ]
-}
-{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "farm_id": "F201",
-        "farm_name": "Second Farm",
-        "acreage": 75.0,
-        "last_updated": "2025-02-01T12:00:00Z"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [19.8010, 41.3310]
-      }
-    }
-  ]
-}
-{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "farm_id": "F201",
-        "farm_name": "Second Farm Updated",
-        "acreage": 80.0,
-        "last_updated": "2030-06-01T00:00:00Z"
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [19.80, 41.33],
-            [19.82, 41.33],
-            [19.82, 41.35],
-            [19.80, 41.35],
-            [19.80, 41.33]
-          ]
-        ]
-      }
-    }
-  ]
-}
+
 ```
 
 Additional 14 payloads used for coverage (points, polygons, later/older timestamps, small/big moves):
 
 ```json
-{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"farm_id":"F202","farm_name":"Poly Farm","acreage":90.0,"last_updated":"2026-01-01T00:00:00Z"},"geometry":{"type":"Polygon","coordinates":[[[19.81,41.33],[19.83,41.33],[19.83,41.34],[19.81,41.34],[19.81,41.33]]]}}]}
-{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"farm_id":"F203","farm_name":"Point Near","acreage":55.0,"last_updated":"2027-01-01T00:00:00Z"},"geometry":{"type":"Point","coordinates":[19.822,41.331]}}]}
-{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"farm_id":"F203","farm_name":"Point Near Updated","acreage":58.0,"last_updated":"2029-01-01T00:00:00Z"},"geometry":{"type":"Point","coordinates":[19.823,41.332]}}]}
-{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"farm_id":"F204","farm_name":"Big Shift","acreage":60.0,"last_updated":"2030-03-01T00:00:00Z"},"geometry":{"type":"Point","coordinates":[19.60,41.20]}}]}
-{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"farm_id":"F205","farm_name":"Older Update","acreage":70.0,"last_updated":"2010-01-01T00:00:00Z"},"geometry":{"type":"Point","coordinates":[19.820,41.330]}}]}
-{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"farm_id":"F206","farm_name":"Newer Update","acreage":72.0,"last_updated":"2032-01-01T00:00:00Z"},"geometry":{"type":"Point","coordinates":[19.821,41.331]}}]}
-{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"farm_id":"F207","farm_name":"Multi Vertex","acreage":85.0,"last_updated":"2028-05-01T00:00:00Z"},"geometry":{"type":"Polygon","coordinates":[[[19.79,41.32],[19.84,41.32],[19.84,41.36],[19.79,41.36],[19.79,41.32]]]}}]}
-{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"farm_id":"F208","farm_name":"Edge Case Empty Name","acreage":95.0,"last_updated":"2029-07-01T00:00:00Z"},"geometry":{"type":"Point","coordinates":[19.825,41.333]}}]}
-{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"farm_id":"F209","farm_name":"Centroid Test","acreage":110.0,"last_updated":"2031-01-01T00:00:00Z"},"geometry":{"type":"Polygon","coordinates":[[[19.80,41.34],[19.82,41.34],[19.82,41.37],[19.80,41.37],[19.80,41.34]]]}}]}
-{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"farm_id":"F210","farm_name":"Minor Move","acreage":66.0,"last_updated":"2030-09-01T00:00:00Z"},"geometry":{"type":"Point","coordinates":[19.8205,41.3302]}}]}
-{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"farm_id":"F210","farm_name":"Minor Move Updated","acreage":66.0,"last_updated":"2031-09-01T00:00:00Z"},"geometry":{"type":"Point","coordinates":[19.8208,41.3304]}}]}
-{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"farm_id":"F211","farm_name":"Far Away","acreage":150.0,"last_updated":"2030-11-01T00:00:00Z"},"geometry":{"type":"Point","coordinates":[20.50,41.90]}}]}
-{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"farm_id":"F212","farm_name":"Ring","acreage":120.0,"last_updated":"2030-12-01T00:00:00Z"},"geometry":{"type":"Polygon","coordinates":[[[19.79,41.33],[19.83,41.33],[19.83,41.35],[19.79,41.35],[19.79,41.33]]]}}]}
-{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"farm_id":"F213","farm_name":"Another Point","acreage":45.0,"last_updated":"2028-02-01T00:00:00Z"},"geometry":{"type":"Point","coordinates":[19.815,41.328]}}]}
+  {
+    "type": "Feature",
+    "properties": {
+      "farm_id": "F202",
+      "farm_name": "Poly Farm",
+      "acreage": 90.0,
+      "last_updated": "2026-01-01T00:00:00Z"
+    },
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[19.81, 41.33], [19.83, 41.33], [19.83, 41.34], [19.81, 41.34], [19.81, 41.33]]]
+    }
+  },
+  {
+    "type": "Feature",
+    "properties": {
+      "farm_id": "F203",
+      "farm_name": "Point Near",
+      "acreage": 55.0,
+      "last_updated": "2027-01-01T00:00:00Z"
+    },
+    "geometry": {
+      "type": "Point",
+      "coordinates": [19.822, 41.331]
+    }
+  },
+  {
+    "type": "Feature",
+    "properties": {
+      "farm_id": "F203",
+      "farm_name": "Point Near Updated",
+      "acreage": 58.0,
+      "last_updated": "2029-01-01T00:00:00Z"
+    },
+    "geometry": {
+      "type": "Point",
+      "coordinates": [19.823, 41.332]
+    }
+  },
+  {
+    "type": "Feature",
+    "properties": {
+      "farm_id": "F204",
+      "farm_name": "Big Shift",
+      "acreage": 60.0,
+      "last_updated": "2030-03-01T00:00:00Z"
+    },
+    "geometry": {
+      "type": "Point",
+      "coordinates": [19.6, 41.2]
+    }
+  },
+  {
+    "type": "Feature",
+    "properties": {
+      "farm_id": "F205",
+      "farm_name": "Older Update",
+      "acreage": 70.0,
+      "last_updated": "2010-01-01T00:00:00Z"
+    },
+    "geometry": {
+      "type": "Point",
+      "coordinates": [19.82, 41.33]
+    }
+  },
+  {
+    "type": "Feature",
+    "properties": {
+      "farm_id": "F206",
+      "farm_name": "Newer Update",
+      "acreage": 72.0,
+      "last_updated": "2032-01-01T00:00:00Z"
+    },
+    "geometry": {
+      "type": "Point",
+      "coordinates": [19.821, 41.331]
+    }
+  },
+  {
+    "type": "Feature",
+    "properties": {
+      "farm_id": "F207",
+      "farm_name": "Multi Vertex",
+      "acreage": 85.0,
+      "last_updated": "2028-05-01T00:00:00Z"
+    },
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[19.79, 41.32], [19.84, 41.32], [19.84, 41.36], [19.79, 41.36], [19.79, 41.32]]]
+    }
+  },
+  {
+    "type": "Feature",
+    "properties": {
+      "farm_id": "F208",
+      "farm_name": "Edge Case Empty Name",
+      "acreage": 95.0,
+      "last_updated": "2029-07-01T00:00:00Z"
+    },
+    "geometry": {
+      "type": "Point",
+      "coordinates": [19.825, 41.333]
+    }
+  },
+  {
+    "type": "Feature",
+    "properties": {
+      "farm_id": "F209",
+      "farm_name": "Centroid Test",
+      "acreage": 110.0,
+      "last_updated": "2031-01-01T00:00:00Z"
+    },
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[19.8, 41.34], [19.82, 41.34], [19.82, 41.37], [19.8, 41.37], [19.8, 41.34]]]
+    }
+  },
+  {
+    "type": "Feature",
+    "properties": {
+      "farm_id": "F210",
+      "farm_name": "Minor Move",
+      "acreage": 66.0,
+      "last_updated": "2030-09-01T00:00:00Z"
+    },
+    "geometry": {
+      "type": "Point",
+      "coordinates": [19.8205, 41.3302]
+    }
+  },
+  {
+    "type": "Feature",
+    "properties": {
+      "farm_id": "F210",
+      "farm_name": "Minor Move Updated",
+      "acreage": 66.0,
+      "last_updated": "2031-09-01T00:00:00Z"
+    },
+    "geometry": {
+      "type": "Point",
+      "coordinates": [19.8208, 41.3304]
+    }
+  },
+  {
+    "type": "Feature",
+    "properties": {
+      "farm_id": "F211",
+      "farm_name": "Far Away",
+      "acreage": 150.0,
+      "last_updated": "2030-11-01T00:00:00Z"
+    },
+    "geometry": {
+      "type": "Point",
+      "coordinates": [20.5, 41.9]
+    }
+  },
+  {
+    "type": "Feature",
+    "properties": {
+      "farm_id": "F212",
+      "farm_name": "Ring",
+      "acreage": 120.0,
+      "last_updated": "2030-12-01T00:00:00Z"
+    },
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[19.79, 41.33], [19.83, 41.33], [19.83, 41.35], [19.79, 41.35], [19.79, 41.33]]]
+    }
+  },
+  {
+    "type": "Feature",
+    "properties": {
+      "farm_id": "F213",
+      "farm_name": "Another Point",
+      "acreage": 45.0,
+      "last_updated": "2028-02-01T00:00:00Z"
+    },
+    "geometry": {
+      "type": "Point",
+      "coordinates": [19.815, 41.328]
+    }
+  }
+
 ```
 
 
