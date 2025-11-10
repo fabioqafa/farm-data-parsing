@@ -71,9 +71,8 @@ def _decide_geometry_merge(
     if not new_geom:
         return False, False, None
 
-    # Block older source geometry updates
     if incoming_ts is not None and incoming_ts < existing_ts:
-        return False, False, None  # stale geometry; ignore silently
+        return False, False, None 
 
     old_pt = _rep_point(old_geom) if old_geom else None
     new_pt = _rep_point(new_geom)
@@ -105,7 +104,7 @@ def _apply_geometry_and_sync_latlon(
         - geometry stays; but if geometry is None, allow explicit lat/lon from payload
     """
     if geometry_flagged:
-        return  # keep as-is
+        return 
 
     if accept_geom_update:
         obj.geometry = payload.geometry
