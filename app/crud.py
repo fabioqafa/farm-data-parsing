@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Tuple
 from sqlalchemy.orm import Session
 from app import models
@@ -29,6 +29,8 @@ def _insert_new_farm(
     if lat is None and lon is None:
         lat, lon = payload.latitude, payload.longitude
 
+    source_ts = _aware(payload.last_updated) if payload.last_updated is not None else None
+
     obj = models.Farm(
         farm_id=payload.farm_id,
         farm_name=payload.farm_name,
@@ -37,7 +39,7 @@ def _insert_new_farm(
         longitude=lon,
         geometry=payload.geometry,
         source=payload.source,
-        last_updated=ingestion_ts,
+        last_updated=source_ts if source_ts is not None else ingestion_ts,
     )
     db.add(obj)
     db.commit()
@@ -59,12 +61,19 @@ def _decide_geometry_merge(
     old_geom: Optional[dict],
     new_geom: Optional[dict],
     geom_diff_threshold_km: float,
+    *,
+    existing_ts: datetime,
+    incoming_ts: Optional[datetime],
 ) -> Tuple[bool, bool, Optional[str]]:
     """
     Returns (accept_update, geometry_flagged, reason)
     """
     if not new_geom:
-        return False, False, None  # nothing to do
+        return False, False, None
+
+    # Block older source geometry updates
+    if incoming_ts is not None and incoming_ts < existing_ts:
+        return False, False, None  # stale geometry; ignore silently
 
     old_pt = _rep_point(old_geom) if old_geom else None
     new_pt = _rep_point(new_geom)
@@ -74,7 +83,8 @@ def _decide_geometry_merge(
         if d_km > geom_diff_threshold_km:
             return False, True, f"Geometry shift {d_km:.2f} km > {geom_diff_threshold_km} km"
         return True, False, None
-    # If we can’t compute old/new reliably, accept incoming geometry
+
+    # If we can’t compute, accept (since it's not older)
     return True, False, None
 
 def _apply_geometry_and_sync_latlon(
@@ -82,6 +92,9 @@ def _apply_geometry_and_sync_latlon(
     payload,
     accept_geom_update: bool,
     geometry_flagged: bool,
+    *,
+    existing_ts: datetime,
+    incoming_ts: Optional[datetime],
 ) -> None:
     """
     - If flagged: keep existing geometry/lat/lon unchanged.
@@ -102,22 +115,28 @@ def _apply_geometry_and_sync_latlon(
             obj.longitude = lon
         return
 
-    # No new geometry was applied:
-    if not obj.geometry:
-        # allow direct payload lat/lon when no geometry exists
-        if payload.latitude is not None:
-            obj.latitude = payload.latitude
-        if payload.longitude is not None:
-            obj.longitude = payload.longitude
-    else:
-        # geometry exists; keep lat/lon in sync with existing geometry
+    # No new geometry was applied
+    if obj.geometry:
+        # keep lat/lon derived from current geometry
         lat, lon = _derive_latlon_from_geom(obj.geometry)
         if lat is not None and lon is not None:
             obj.latitude = lat
             obj.longitude = lon
+    else:
+        # No geometry at all: only accept explicit lat/lon if not stale
+        if incoming_ts is None or incoming_ts >= existing_ts:
+            if payload.latitude is not None:
+                obj.latitude = payload.latitude
+            if payload.longitude is not None:
+                obj.longitude = payload.longitude
 
-def _finalize_metadata(obj: models.Farm, *, ingestion_ts: datetime, source: Optional[str]) -> None:
-    obj.last_updated = ingestion_ts
+
+def _finalize_metadata(obj: models.Farm, *, source: Optional[str], source_last_updated: Optional[datetime]) -> None:
+    if source_last_updated is not None:
+        existing_ts = _aware(obj.last_updated)
+        if source_last_updated >= existing_ts:
+            obj.last_updated = source_last_updated
+
     if source:
         obj.source = source
 
@@ -138,7 +157,7 @@ def upsert_farm(
     obj = db.get(models.Farm, payload.farm_id)
 
     if not obj:
-        obj = _insert_new_farm(db, payload, ingestion_ts)
+        obj = _insert_new_farm(db, payload, ingestion_ts) #If we want now -> ingestion_ts=datetime.now(timezone.utc)
         return obj, False, None
 
     geometry_flagged = False
@@ -146,19 +165,35 @@ def upsert_farm(
 
     # 1) Selective scalar updates by recency/presence
     existing_ts = _aware(obj.last_updated)
+    incoming_ts = _aware(payload.last_updated) if payload.last_updated is not None else None
+
     _update_scalars_if_newer(obj, payload, existing_ts)
 
     # 2) Geometry decision
     accept_geom_update, geometry_flagged, flag_reason = _decide_geometry_merge(
-        obj.geometry, payload.geometry, geom_diff_threshold_km
+        obj.geometry,
+        payload.geometry,
+        geom_diff_threshold_km,
+        existing_ts=existing_ts,
+        incoming_ts=incoming_ts,
     )
 
     # 3) Geometry + lat/lon sync
-    _apply_geometry_and_sync_latlon(obj, payload, accept_geom_update, geometry_flagged)
+    _apply_geometry_and_sync_latlon(
+        obj,
+        payload,
+        accept_geom_update,
+        geometry_flagged,
+        existing_ts=existing_ts,
+        incoming_ts=incoming_ts,
+    )
 
     # 4) Timestamps/source
-    _finalize_metadata(obj, ingestion_ts=ingestion_ts, source=payload.source)
-
+    _finalize_metadata(
+            obj,
+            source=payload.source,
+            source_last_updated=_aware(payload.last_updated) if payload.last_updated is not None else None,
+        )
     db.commit()
     db.refresh(obj)
     return obj, geometry_flagged, flag_reason

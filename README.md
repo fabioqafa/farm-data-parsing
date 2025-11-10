@@ -113,7 +113,7 @@ Ingest CSV:
 
 ```bash
 curl -X POST "http://127.0.0.1:8000/ingest/csv" \
-  -F "file=@farms_cases_21.csv;type=text/csv"
+  -F "file=@farms.csv;type=text/csv"
 ```
 
 Ingest GeoJSON:
@@ -141,7 +141,7 @@ curl "http://127.0.0.1:8000/farms/within?lat=41.4&lon=19.9&radius=10&use=geometr
 
 This code was tested with:
 
-- CSV file: `farms_cases_21.csv` (included at the repo root).
+- CSV file: `farms.csv`.
 - GeoJSON payloads listed below (applied in order to test updates, newer timestamps, geometry moves > 5 km, and polygon handling):
 
 Provided payloads:
@@ -471,5 +471,4 @@ pytest -q
 ## Notes and Tips
 
 - GeoJSON coordinates are `[longitude, latitude]`; the API consistently interprets these to internal `(lat, lon)` for distance calculations.
-- The `/farms/within` endpoint supports a `use` parameter allowing you to pick `latlon` vs. `geometry` or let the service choose `auto`.
 - If a farm is just outside your radius, slightly increase `radius` to validate spatial proximity (e.g., 10.5 km vs. 10 km).
