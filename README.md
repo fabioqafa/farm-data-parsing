@@ -58,11 +58,7 @@ Representative point logic:
 
 - `GET /farms` — list all farms.
 - `GET /farms/{farm_id}` — retrieve a single farm.
-- `GET /farms/within?lat={lat}&lon={lon}&radius={km}&use={auto|latlon|geometry}` — list farms within `radius` kilometers of the given coordinate.
-  - `use` selector:
-    - `auto` (default): prefer stored `latitude/longitude`; if missing, fall back to geometry representative point.
-    - `latlon`: use only `latitude/longitude` fields.
-    - `geometry`: use only geometry-derived representative point.
+- `GET /farms/within?lat={lat}&lon={lon}&radius={km}` — list farms within `radius` kilometers of the given coordinate.
 - `POST /ingest/csv` — multipart upload with form field `file` containing the CSV.
 - `POST /ingest/geojson` — body is a GeoJSON `Feature` or `FeatureCollection`.
 
