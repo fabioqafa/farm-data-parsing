@@ -5,9 +5,9 @@ from app import models, schemas, crud
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.ingest_service import FarmIngestService
-from app.ingest_sources import CsvSource, GeoJSONSource
+from app.ingest_sources import CsvSource, GeoJSONSource, XmlSource
 from app.utils import process_csv_content, process_geojson_payload
-
+import xml.etree.ElementTree as ET
 
 app = FastAPI(title="Farms API (SQLite)")
 
@@ -57,3 +57,18 @@ async def ingest_geojson(geojson: dict, db: Session = Depends(get_db)):
         return svc.ingest(GeoJSONSource(geojson), db)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
+
+# @app.post("/ingest/xml")
+# async def ingest_xml(file: UploadFile = File(...), db: Session = Depends(get_db)):
+#     try:
+#         content = (await file.read()).decode("utf-8")
+#         return svc.ingest(XmlSource(content), db)
+#     except UnicodeDecodeError as e:
+#         raise HTTPException(status_code=400, detail=f"XML must be UTF-8 encoded: {e}")
+#     except ET.ParseError as e:
+#         raise HTTPException(status_code=422, detail=f"Invalid XML: {e}")
+#     except ValueError as e:
+#         # bubbles up schema/validation issues raised by XmlSource.records()
+#         raise HTTPException(status_code=422, detail=str(e))
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Unexpected error while ingesting XML: {e}")

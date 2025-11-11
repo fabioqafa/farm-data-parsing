@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app import crud, schemas
+from app.ingest_sources import IngestSource
 from app.utils import (
     representative_point_from_geometry,
     round4,
@@ -29,7 +30,7 @@ class FarmIngestService:
         except (TypeError, ValueError):
             return None
 
-    def ingest(self, source, db: Session) -> Dict[str, Any]:
+    def ingest(self, source: IngestSource, db: Session) -> Dict[str, Any]:
         count = 0
         flags: list[dict] = []
         ingestion_ts = self._clock()

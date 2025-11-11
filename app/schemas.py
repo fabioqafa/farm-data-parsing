@@ -9,7 +9,8 @@ class FarmBase(BaseModel):
     geometry: Optional[Any] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
-    source: str = Field(..., pattern="^(csv|geojson)$")
+    source: str = Field()
+    # source: str = Field(..., pattern="^(csv|geojson)$")
     last_updated: datetime
 
 class FarmOut(FarmBase):
