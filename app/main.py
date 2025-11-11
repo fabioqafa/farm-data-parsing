@@ -65,21 +65,21 @@ async def ingest_geojson(
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
-# @app.post("/ingest/xml")
-# async def ingest_xml(
-#     file: UploadFile = File(...),
-#     db: Session = Depends(get_db),
-#     svc: FarmIngestService = Depends(get_ingest_service),
-# ):
-#     try:
-#         content = (await file.read()).decode("utf-8")
-#         return svc.ingest(XmlSource(content), db)
-#     except UnicodeDecodeError as e:
-#         raise HTTPException(status_code=400, detail=f"XML must be UTF-8 encoded: {e}")
-#     except ET.ParseError as e:
-#         raise HTTPException(status_code=422, detail=f"Invalid XML: {e}")
-#     except ValueError as e:
-#         # bubbles up schema/validation issues raised by XmlSource.records()
-#         raise HTTPException(status_code=422, detail=str(e))
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Unexpected error while ingesting XML: {e}")
+@app.post("/ingest/xml")
+async def ingest_xml(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    svc: FarmIngestService = Depends(get_ingest_service),
+):
+    try:
+        content = (await file.read()).decode("utf-8")
+        return svc.ingest(XmlSource(content), db)
+    except UnicodeDecodeError as e:
+        raise HTTPException(status_code=400, detail=f"XML must be UTF-8 encoded: {e}")
+    except ET.ParseError as e:
+        raise HTTPException(status_code=422, detail=f"Invalid XML: {e}")
+    except ValueError as e:
+        # bubbles up schema/validation issues raised by XmlSource.records()
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error while ingesting XML: {e}")
