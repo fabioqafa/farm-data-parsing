@@ -2,7 +2,12 @@ from datetime import datetime, timezone
 from typing import Optional, Tuple
 from sqlalchemy.orm import Session
 from app import models
-from app.utils import to_aware_utc, representative_point_from_geometry, haversine_km
+from app.utils import (
+    to_aware_utc,
+    representative_point_from_geometry,
+    haversine_km,
+    round4,
+)
 
 # ---------- tiny, single-purpose helpers ----------
 
@@ -17,7 +22,14 @@ def _rep_point(geom: Optional[dict]) -> Optional[tuple[float, float]]:
 
 def _derive_latlon_from_geom(geom: Optional[dict]) -> tuple[Optional[float], Optional[float]]:
     rp = _rep_point(geom)
-    return (float(rp[0]), float(rp[1])) if rp else (None, None)
+    if not rp:
+        return (None, None)
+    lat = round4(float(rp[0]))
+    lon = round4(float(rp[1]))
+    return lat, lon
+
+def _rounded_latlon(lat: Optional[float], lon: Optional[float]) -> tuple[Optional[float], Optional[float]]:
+    return round4(lat), round4(lon)
 
 def _insert_new_farm(
     db: Session,
@@ -29,6 +41,7 @@ def _insert_new_farm(
     if lat is None and lon is None:
         lat, lon = payload.latitude, payload.longitude
 
+    lat, lon = _rounded_latlon(lat, lon)
     source_ts = _aware(payload.last_updated) if payload.last_updated is not None else None
 
     obj = models.Farm(
@@ -125,9 +138,9 @@ def _apply_geometry_and_sync_latlon(
         # No geometry at all: only accept explicit lat/lon if not stale
         if incoming_ts is None or incoming_ts >= existing_ts:
             if payload.latitude is not None:
-                obj.latitude = payload.latitude
+                obj.latitude = round4(payload.latitude)
             if payload.longitude is not None:
-                obj.longitude = payload.longitude
+                obj.longitude = round4(payload.longitude)
 
 
 def _finalize_metadata(obj: models.Farm, *, source: Optional[str], source_last_updated: Optional[datetime]) -> None:

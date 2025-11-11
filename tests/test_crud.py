@@ -172,6 +172,26 @@ def test_upsert_accepts_direct_lat_lon_when_no_geometry(db_session):
     assert same_moment(obj.last_updated, payload.last_updated)
 
 
+def test_upsert_rounds_lat_lon_to_four_decimals(db_session):
+    """Lat/Lon: values are rounded to 4 decimal places regardless of source."""
+    payload = mk_payload(geometry=None, latitude=41.3333333, longitude=19.8777777)
+    obj, _, _ = crud.upsert_farm(db_session, payload)
+
+    assert pytest.approx(obj.latitude, rel=1e-9) == 41.3333
+    assert pytest.approx(obj.longitude, rel=1e-9) == 19.8778
+
+    geom_payload = mk_payload(
+        geometry={"type": "Point", "coordinates": [19.87654321, 41.12345678]},
+        latitude=None,
+        longitude=None,
+        last_updated=datetime(2025, 11, 10, 10, 0, tzinfo=timezone.utc),
+    )
+    obj2, _, _ = crud.upsert_farm(db_session, geom_payload)
+
+    assert pytest.approx(obj2.latitude, rel=1e-9) == 41.1235
+    assert pytest.approx(obj2.longitude, rel=1e-9) == 19.8765
+
+
 def test_upsert_direct_latlon_overrides_even_if_geometry_present(db_session):
     """Update: when geometry present, lat/lon derived from geometry; explicit lat/lon ignored; last_updated = SOURCE ts."""
     crud.upsert_farm(db_session, mk_payload(geometry=None))
