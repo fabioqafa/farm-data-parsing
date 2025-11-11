@@ -6,12 +6,11 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.ingest_service import FarmIngestService
 from app.ingest_sources import CsvSource, GeoJSONSource, XmlSource
-from app.utils import process_csv_content, process_geojson_payload
 import xml.etree.ElementTree as ET
+from app.deps import get_ingest_service
+
 
 app = FastAPI(title="Farms API (SQLite)")
-
-svc = FarmIngestService()
 
 # Create tables at startup
 @app.on_event("startup")
@@ -40,7 +39,11 @@ def get_farm(farm_id: str, db: Session = Depends(get_db)):
     return obj
 
 @app.post("/ingest/csv")
-async def ingest_csv(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def ingest_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    svc: FarmIngestService = Depends(get_ingest_service),
+):
     try:
         content = (await file.read()).decode("utf-8")
         return svc.ingest(CsvSource(content), db)
@@ -52,14 +55,22 @@ async def ingest_csv(file: UploadFile = File(...), db: Session = Depends(get_db)
         raise HTTPException(status_code=500, detail=f"Unexpected error while ingesting CSV: {e}")
 
 @app.post("/ingest/geojson")
-async def ingest_geojson(geojson: dict, db: Session = Depends(get_db)):
+async def ingest_geojson(
+    geojson: dict,
+    db: Session = Depends(get_db),
+    svc: FarmIngestService = Depends(get_ingest_service),
+):
     try:
         return svc.ingest(GeoJSONSource(geojson), db)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
 # @app.post("/ingest/xml")
-# async def ingest_xml(file: UploadFile = File(...), db: Session = Depends(get_db)):
+# async def ingest_xml(
+#     file: UploadFile = File(...),
+#     db: Session = Depends(get_db),
+#     svc: FarmIngestService = Depends(get_ingest_service),
+# ):
 #     try:
 #         content = (await file.read()).decode("utf-8")
 #         return svc.ingest(XmlSource(content), db)
